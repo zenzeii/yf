@@ -2,58 +2,97 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Growing Heart on Click</title>
+  <title>Full-Screen Heart → Photo Fade</title>
   <style>
-    /* --- Inline CSS --- */
-    body {
+    /* --- Reset & center --- */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
       display: flex;
-      height: 100vh;
       justify-content: center;
       align-items: center;
-      margin: 0;
       background: #f8f8f8;
     }
+
+    /* --- Heart styling --- */
     #heart {
       width: 100px;
       height: 100px;
       cursor: pointer;
-      transition: transform 0.3s ease;
+      transition: transform 1s ease, fill 1s ease;
+      transform-origin: center center;
+    }
+    #heart path {
+      fill: #e74c3c;
+      transition: fill 1s ease;
+    }
+
+    /* --- Overlay photo (hidden until fade) --- */
+    #overlay {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background-size: cover;
+      background-position: center;
+      opacity: 0;
+      transition: opacity 1s ease;
+      pointer-events: none;
+      z-index: 1;
     }
   </style>
-
-  <!-- --- JSON config for easy tuning (initial scale & growth factor) --- -->
-  <script type="application/json" id="heart-config">
-    {
-      "initialScale": 1,
-      "growthFactor": 1.2
-    }
-  </script>
 </head>
 <body>
 
-  <!-- --- Inline SVG Heart --- -->
+  <!-- Inline SVG Heart -->
   <svg id="heart" viewBox="0 0 32 29.6">
     <path
-      d="M23.6,0c-2.9,0-5.4,1.6-6.8,4C14.8,1.6,12.3,0,9.4,0
-         C4.2,0,0,4.2,0,9.4c0,11.5,16,20.2,16,20.2s16-8.7,16-20.2
+      d="M23.6,0c-2.9,0-5.4,1.6-6.8,4
+         C14.8,1.6,12.3,0,9.4,0
+         C4.2,0,0,4.2,0,9.4
+         c0,11.5,16,20.2,16,20.2
+         s16-8.7,16-20.2
          C32,4.2,27.8,0,23.6,0z"
-      fill="#e74c3c"
     />
   </svg>
 
+  <!-- Overlay for the photo fade-in -->
+  <div id="overlay"></div>
+
   <script>
-    // --- Read JSON config ---
-    const configEl = document.getElementById('heart-config');
-    const { initialScale, growthFactor } = JSON.parse(configEl.textContent);
+    (function() {
+      const heart = document.getElementById('heart');
+      const path  = heart.querySelector('path');
+      const overlay = document.getElementById('overlay');
 
-    // --- Heart click logic ---
-    const heart = document.getElementById('heart');
-    let scale = initialScale;
+      // <<< CONFIGURATION >>>
+      const TARGET_COLOR = '#8a2be2';  // violet
+      const PHOTO_URL    = 'https://picsum.photos/1200/800';
+      const DURATION_MS  = 1000;        // must match CSS transition durations
 
-    heart.addEventListener('click', () => {
-      scale *= growthFactor;
-      heart.style.transform = `scale(${scale})`;
-    });
+      let tapped = false;
+
+      heart.addEventListener('click', () => {
+        if (tapped) return;
+        tapped = true;
+
+        // Compute the scale needed to cover the viewport
+        const rect = heart.getBoundingClientRect();
+        const scaleX = window.innerWidth  / rect.width;
+        const scaleY = window.innerHeight / rect.height;
+        const fullScale = Math.max(scaleX, scaleY);
+
+        // Trigger CSS transitions: grow + recolor
+        heart.style.transform = `scale(${fullScale})`;
+        path.style.fill = TARGET_COLOR;
+
+        // After the transform/color transition finishes, fade in photo
+        setTimeout(() => {
+          overlay.style.backgroundImage = `url('${PHOTO_URL}')`;
+          overlay.style.opacity = 1;
+        }, DURATION_MS);
+      });
+    })();
   </script>
 
 </body>
