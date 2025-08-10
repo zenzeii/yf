@@ -20,12 +20,13 @@
       width: 100px;
       height: 100px;
       cursor: pointer;
-      transition: transform 1s ease, fill 1s ease;
+      /* make both transform and color take 3s now */
+      transition: transform 3s ease, fill 3s ease;
       transform-origin: center center;
     }
     #heart path {
       fill: #e74c3c;
-      transition: fill 1s ease;
+      transition: fill 3s ease;
     }
 
     /* --- Overlay photo (hidden until fade) --- */
@@ -36,7 +37,7 @@
       background-size: cover;
       background-position: center;
       opacity: 0;
-      transition: opacity 1s ease;
+      transition: opacity 1s ease; /* you can also lengthen this if you like */
       pointer-events: none;
       z-index: 1;
     }
@@ -61,14 +62,14 @@
 
   <script>
     (function() {
-      const heart = document.getElementById('heart');
-      const path  = heart.querySelector('path');
+      const heart   = document.getElementById('heart');
+      const path    = heart.querySelector('path');
       const overlay = document.getElementById('overlay');
 
       // <<< CONFIGURATION >>>
       const TARGET_COLOR = '#8a2be2';  // violet
       const PHOTO_URL    = 'https://raw.githubusercontent.com/zenzeii/yf/refs/heads/main/assets/photo.jpg';
-      const DURATION_MS  = 1000;        // must match CSS transition durations
+      const DURATION_MS  = 3000;        // ← match this to the CSS transition duration
 
       let tapped = false;
 
@@ -76,8 +77,8 @@
         if (tapped) return;
         tapped = true;
 
-        // Compute the scale needed to cover the viewport
-        const rect = heart.getBoundingClientRect();
+        // Compute the scale needed to cover the viewport *correctly*
+        const rect   = heart.getBoundingClientRect();
         const scaleX = window.innerWidth  / rect.width;
         const scaleY = window.innerHeight / rect.height;
         const fullScale = Math.max(scaleX, scaleY);
